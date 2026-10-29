@@ -21,6 +21,7 @@ TC    := 0
 VCD   := 0
 DEBUG := 0
 GUI   := 0
+SV_SEED ?= random
 
 ####################################################################################################
 # Tools
@@ -123,7 +124,15 @@ endif
 $(REPO_ROOT)/local.f:
 	@echo -e "\033[1;33m#\033[0m Generating Testbench Filelist"
 	@echo "-i $(REPO_ROOT)/testbench" > $(REPO_ROOT)/local.f
-	@find $(REPO_ROOT)/testbench -maxdepth 1 -name "*.sv" >> $(REPO_ROOT)/local.f
+	@echo "$(REPO_ROOT)/testbench/apb_uart_uvm/apb_uart_if.sv" >> $(REPO_ROOT)/local.f
+	@echo "$(REPO_ROOT)/testbench/apb_uart_uvm/packages/apb_uart_uvm_pkg.sv" >> $(REPO_ROOT)/local.f
+	@find $(REPO_ROOT)/testbench -name "*.sv" \
+		! -path "$(REPO_ROOT)/testbench/apb_uart_uvm/apb_uart_if.sv" \
+		! -path "$(REPO_ROOT)/testbench/apb_uart_uvm/packages/apb_uart_uvm_pkg.sv" \
+		! -path "$(REPO_ROOT)/testbench/apb_uart_uvm/components/*" \
+		! -path "$(REPO_ROOT)/testbench/apb_uart_uvm/objects/*" \
+		! -path "$(REPO_ROOT)/testbench/apb_uart_uvm/sequences/*" \
+		! -path "$(REPO_ROOT)/testbench/apb_uart_uvm/tests/*" >> $(REPO_ROOT)/local.f
 	@sed -i 's|$(REPO_ROOT)|$$\{$(REPO_NAME_EXP)\}|g' $(REPO_ROOT)/local.f
 
 .PHONY: $(BUILD_DIR)/XSIM_ARGS
@@ -137,6 +146,7 @@ endif
 	@echo "--testplusarg TC=$(TC)" >> $@
 	@echo "--testplusarg VCD=$(VCD)" >> $@
 	@echo "--testplusarg DEBUG=$(DEBUG)" >> $@
+	@echo "--sv_seed $(SV_SEED)" >> $@
 
 .PHONY: compile_all
 compile_all:
@@ -163,15 +173,15 @@ compile_this_module:
 		echo -e "\033[1;33m#\033[0m Source files have not changed, skipping compilation."; \
 	else \
 		echo -e "\033[1;33m#\033[0m Source files have changed, recompiling..."; \
-		cd $(BUILD_DIR) && $(XVLOG) -d SIMULATION -sv -f $(REPO_ROOT)/reuse.f -f $(REPO_ROOT)/local.f -log $(LOG_DIR)/xvlog_$(shell date +%Y%m%d_%H%M%S).log $(O_EW); \
-		cp $(BUILD_DIR)/hash_new $(BUILD_DIR)/hash_old; \
+		cd $(BUILD_DIR) && $(XVLOG) -L uvm -d SIMULATION -sv -f $(REPO_ROOT)/reuse.f -f $(REPO_ROOT)/local.f -log $(LOG_DIR)/xvlog_$(shell date +%Y%m%d_%H%M%S).log && \
+		cp $(BUILD_DIR)/hash_new $(BUILD_DIR)/hash_old && \
 		rm -rf $(BUILD_DIR)/xelab_*; \
 	fi
 
 # Elaborate
 $(BUILD_DIR)/xelab_$(TOP):
 	@echo -e "\033[1;33m#\033[0m Elaborating $(TOP)"
-	@cd $(BUILD_DIR) && $(XELAB) $(TOP) -s snap_$(TOP) -debug all -log $(LOG_DIR)/xelab_$(TOP)_$(shell date +%Y%m%d_%H%M%S).log $(O_EW)
+	@cd $(BUILD_DIR) && $(XELAB) -L uvm $(TOP) -s snap_$(TOP) -debug all -log $(LOG_DIR)/xelab_$(TOP)_$(shell date +%Y%m%d_%H%M%S).log
 	@if [ $$? -ne 0 ]; then \
 		echo -e "\033[1;31m#\033[0m Elaboration failed, check log file $(LOG_DIR)/xelab_$(TOP)_$(shell date +%Y%m%d_%H%M%S).log"; \
 		exit 1; \
@@ -193,7 +203,7 @@ simulate:
 	@make -s __ENV_BUILD__ TOP=$(TOP)
 	@make -s $(BUILD_DIR)/XSIM_ARGS GUI=$(GUI) TN=$(TN) TC=$(TC) VCD=$(VCD) DEBUG=$(DEBUG)
 	@echo -e "\033[1;33m#\033[0m Simulating TOP:$(TOP) Test:$(TN) Count:$(TC)"
-	@cd $(BUILD_DIR) && $(XSIM) snap_$(TOP) -f $(BUILD_DIR)/XSIM_ARGS -log $(LOG_DIR)/xsim_$(TOP)_$(TN)_$(shell date +%Y%m%d_%H%M%S).log $(H_EW)
+	@cd $(BUILD_DIR) && $(XSIM) snap_$(TOP) -f $(BUILD_DIR)/XSIM_ARGS -log $(LOG_DIR)/xsim_$(TOP)_$(TN)_$(shell date +%Y%m%d_%H%M%S).log | sed -E -e '/random sv_seed =/Id' -e 's/ -sv_seed [^ ]+//g' $(H_EW)
 ifneq ($(VCD), 0)
 	@echo -e "\033[1;33m#\033[0m Loading VCD waveform file"
 	@gtkwave $(REPO_ROOT)/wcfg/$(TOP).gtkw || gtkwave $(BUILD_DIR)/$(TOP).vcd
@@ -208,9 +218,8 @@ compile_submodule:
 	FILE_HASH=$$(cat $(BUILD_DIR)/$(SUB)_commit 2>/dev/null || echo ""); \
 	if [ "$$SUB_HASH" != "$$FILE_HASH" ] || [ -z "$$SUB_HASH" ]; then \
 		echo -e "\033[1;33m#\033[0m Submodule $(SUB) commit has changed, recompiling..."; \
-		echo -n $(shell git submodule status $(REPO_ROOT)/submodule/$(SUB) | awk '{print $$1}') > $(BUILD_DIR)/$(SUB)_commit; \
-		cd $(BUILD_DIR) && $(XVLOG) -sv -f $(REPO_ROOT)/submodule/$(SUB)/reuse.f -log $(LOG_DIR)/xvlog_$(SUB)_$(shell date +%Y%m%d_%H%M%S).log $(O_EW); \
-		git submodule status $(REPO_ROOT)/submodule/$(SUB) | awk '{print $$1}' > $(BUILD_DIR)/$(SUB)_commit; \
+		cd $(BUILD_DIR) && $(XVLOG) -d SIMULATION -sv -f $(REPO_ROOT)/submodule/$(SUB)/reuse.f -log $(LOG_DIR)/xvlog_$(SUB)_$(shell date +%Y%m%d_%H%M%S).log && \
+		echo "$$SUB_HASH" > $(BUILD_DIR)/$(SUB)_commit && \
 		rm -f $(BUILD_DIR)/xelab_*; \
 	else \
 		echo -e "\033[1;33m#\033[0m Submodule $(SUB) commit has not changed, skipping compilation."; \
