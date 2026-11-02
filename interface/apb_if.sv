@@ -1,4 +1,4 @@
-`include "typedef.svh"
+`include "../submodule/adn_apb/include/apb/typedef.svh"
 
 interface apb_if #(
     parameter int ADDR_WIDTH = 32,

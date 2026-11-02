@@ -55,12 +55,10 @@ import uvm_pkg::*;
 
 module apb_uart_top_uvm_tb;
 
-  // Keep the testbench monitor in sync with the DUT's effective baud rate.
-  // The DUT clock divider is implemented as a dual-edge clock divider, which
-  // effectively halves the nominal baud rate compared with the simple formula.
-  // With {prescaler=4, clk_div=0x05B} and a 100 MHz PCLK, the actual UART bit rate
-  // is approximately 100e6 / ((4 + 1) * (0x05B + 1) * 2) ~= 108695 baud.
-  localparam int UART_BAUD = 108_695;   // effective DUT UART baud
+  // Use the standard UART bit rate expected by the interface/default sequences.
+  // The DUT divider is configured as {prescaler=4, clk_div=0x05B}; with a 100 MHz
+  // APB clock this yields the common 115200 baud rate used by the UART helper code.
+  localparam int UART_BAUD = 108695;
   localparam int PARITY_EN = 0;
   localparam int PARITY_TYPE = 0;
   localparam int EXTRA_STOP = 0;

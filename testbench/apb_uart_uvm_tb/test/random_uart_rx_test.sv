@@ -22,7 +22,7 @@ class random_uart_rx_test extends apb_uart_base_test;
     uart_seq = random_uart_rx_seq::type_id::create("uart_seq");
     uart_seq.start(env.apb.sequencer);
 
-    tx_window = uart_seq.num_transactions * 10 * (1s / 108695) + 10us;
+    tx_window = uart_seq.num_transactions * 10 * (1s / 108695) + 10us; // must match the real DUT UART baud
     #(tx_window);
 
     `uvm_info(get_type_name(), "UART TX observation window completed", UVM_LOW)

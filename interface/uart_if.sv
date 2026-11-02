@@ -138,45 +138,58 @@ interface uart_if;
     bit  expected_parity;
 
     data        = '0;
-    frame_error = 0;
+    frame_error = 1'b0;
 
     bt          = bit_period();
 
     if (bt == 0ns) begin
       $error("[UART_IF] Invalid baud rate: %0d", baud_rate);
-      frame_error = 1;
+      frame_error = 1'b1;
       return;
     end
 
     if (data_bits < 5 || data_bits > 8) begin
       $error("[UART_IF] Unsupported data width: %0d", data_bits);
-      frame_error = 1;
+      frame_error = 1'b1;
       return;
     end
 
-    // Wait for the falling edge of the start bit.
+    // --------------------------------------------------------
+    // Detect start bit
+    // --------------------------------------------------------
+
     @(negedge rx);
 
-    // Sample near the center of the start bit.
+    // Confirm start bit at its center.
     #(bt / 2);
 
     if (rx !== 1'b0) begin
-      frame_error = 1;
+      frame_error = 1'b1;
       return;
     end
 
-    // Move to the center of the first data bit.
-    #(bt);
+    // --------------------------------------------------------
+    // Sample data bits at their centers
+    // --------------------------------------------------------
 
-    // Sample data, LSB first.
     for (int i = 0; i < data_bits; i++) begin
-      data[i] = rx;
+
       #(bt);
+
+      data[i] = rx;
+
     end
 
-    // Optional parity bit.
+    // --------------------------------------------------------
+    // Sample parity bit
+    // --------------------------------------------------------
+
     if (parity_en) begin
+
+      #(bt);
+
       parity_bit = rx;
+
       expected_parity = 1'b0;
 
       for (int i = 0; i < data_bits; i++) begin
@@ -185,21 +198,25 @@ interface uart_if;
 
       if (parity_type) expected_parity = ~expected_parity;
 
-      if (parity_bit !== expected_parity) frame_error = 1;
+      if (parity_bit !== expected_parity) frame_error = 1'b1;
 
-      #(bt);
     end
 
-    // Sample first stop bit.
-    if (rx !== 1'b1) frame_error = 1;
+    // --------------------------------------------------------
+    // Sample stop bit at its center
+    // --------------------------------------------------------
 
     #(bt);
 
-    // Optional additional stop bit.
+    if (rx !== 1'b1) frame_error = 1'b1;
+
+    // Additional stop bit, if configured.
     if (extra_stop) begin
-      if (rx !== 1'b1) frame_error = 1;
 
       #(bt);
+
+      if (rx !== 1'b1) frame_error = 1'b1;
+
     end
 
   endtask
