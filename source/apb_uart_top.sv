@@ -89,8 +89,10 @@ module apb_uart_top #(
   logic               tx_fifo_pop_ready;  // Gated pop to avoid draining when tx_en=0
 
   // RX Datapath signals connecting Receiver to FIFO
-  logic [        7:0] rx_fifo_wdata;  // From Rx
+    logic [        7:0] rx_fifo_wdata;  // From Rx
   logic               rx_data_valid_out;  // From Rx
+    logic               rx_data_valid_sync;
+    logic               rx_data_valid_sync_d;
   logic               rx_fifo_push;  // To RX FIFO
   logic               rx_fifo_ready_in;  // From RX FIFO
   logic [        7:0] rx_fifo_rdata;  // To APB
@@ -144,12 +146,30 @@ module apb_uart_top #(
   always_comb tx_data_cnt = {{(10 - FIFO_SIZE - 1) {1'b0}}, tx_fifo_count};
   always_comb rx_data_cnt = {{(10 - FIFO_SIZE - 1) {1'b0}}, rx_fifo_count};
 
-  // Mask Rx data entry unless Receiver is enabled
-  always_comb rx_fifo_push = rx_data_valid_out & rx_en;
+    // Synchronize the receiver pulse and enqueue only once in the PCLK domain.
+    always_ff @(posedge PCLK or negedge datapath_rst_n) begin
+        if (!datapath_rst_n) begin
+            rx_data_valid_sync <= 1'b0;
+            rx_data_valid_sync_d <= 1'b0;
+        end else begin
+            rx_data_valid_sync <= rx_data_valid_out;
+            rx_data_valid_sync_d <= rx_data_valid_sync;
+        end
+    end
+
+    always_comb rx_fifo_push = rx_data_valid_sync & ~rx_data_valid_sync_d & rx_en;
 
   // Valid and ready inputs to/from Tx are gated by tx_en
   always_comb tx_data_valid_masked = tx_fifo_valid_out & tx_en;
-  always_comb tx_fifo_pop_ready = tx_ready_in & tx_en;
+
+    // Hold the FIFO dequeue acknowledgement until the UART clock has sampled
+    // the current byte; the FIFO itself is clocked by PCLK.
+    always_ff @(posedge uart_clk or negedge datapath_rst_n) begin
+        if (!datapath_rst_n)
+            tx_fifo_pop_ready <= 1'b0;
+        else
+            tx_fifo_pop_ready <= tx_data_valid_masked & tx_ready_in;
+    end
 
   // Interrupt Controller
   always_comb begin
@@ -324,3 +344,5 @@ module apb_uart_top #(
 `endif  // SIMULATION
 
 endmodule
+
+
