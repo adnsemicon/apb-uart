@@ -50,7 +50,10 @@
 [`dummy_checker`](https://github.com/ADN-VLSI/adn_uart/blob/main/document/assertion/dummy_checker.md)
 
 ## INTERFACE
+[`apb_if`](document/interface/apb_if.md)
+[`ctrl_if`](document/interface/ctrl_if.md)
 [`dummy_interface`](document/interface/dummy_interface.md)
+[`uart_if`](document/interface/uart_if.md)
 
 [`apb_memif`](https://github.com/ADN-VLSI/adn_apb/blob/main/document/interface/apb_memif.md)
 [`dummy_interface`](https://github.com/ADN-VLSI/adn_apb/blob/main/document/interface/dummy_interface.md)
@@ -60,6 +63,7 @@
 
 ## INCLUDE
 [`dummy.svh`](document/include/dummy.md)
+[`uart_reg_if_pkg.sv`](document/include/uart_reg_if_pkg.md)
 
 [`apb/assign.svh`](https://github.com/ADN-VLSI/adn_apb/blob/main/document/include/apb/assign.md)
 [`apb/typedef.svh`](https://github.com/ADN-VLSI/adn_apb/blob/main/document/include/apb/typedef.md)
