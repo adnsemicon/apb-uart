@@ -4,6 +4,8 @@
 `include "uvm_macros.svh"
 import uvm_pkg::*;
 
+`include "uart_reg_if_pkg.sv"
+
 // ------------------------------------------------------------
 // Transaction objects
 // ------------------------------------------------------------
