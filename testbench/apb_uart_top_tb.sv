@@ -1,9 +1,35 @@
 /*
 
-| TEST CASE | DATE       | AUTHOR          | DESCRIPTION                                           |
-|-----------|------------|-----------------|-------------------------------------------------------|  
-| TC_001    | 2026-11-03 | Foez Ahmed      | Test case description goes here                       |
-| TC_002    | 2026-11-03 | Foez Ahmed      | Test case description goes here                       |
+| TEST CASE | DATE       | AUTHOR          |
+|-----------|------------|-----------------|
+| RST_0     | 2026-11-03 | Foez Ahmed      |
+| RST_1     | 2026-11-03 | Foez Ahmed      |
+| CLK       | 2026-11-03 | Foez Ahmed      |
+| RGT       | 2026-11-03 | Foez Ahmed      | Request Grant Test (RGT). Verify that the request and grant mechanism.          |
+| INTR      | 2026-11-03 | Foez Ahmed      | Interrupt Test (INTR). Verify that the interrupt mechanism works correctly.     |
+| DATA      | 2026-11-03 | Foez Ahmed      | Data Transfer Test (DATA). Verify that data transfer works correctly.           |
+
+## Test Cases
+
+### RST_0
+- Revert Registers to know valuse as per the datasheet.
+- The TX & RX FIFOs should be cleared to their default states.
+- UART TX floats back to pull-up state.
+- All interrupt flags should be cleared.
+
+### RST_1
+- ALL conditions from RST_0 should be met.
+- [Probe] CLK Generation Returns to default baud rate. 
+- Outgoing TX is halted and waits for UART_CTRL::TX_EN.
+- Incoming RX is ignored and awaits clock UART_CTRL::RX_EN.
+- [Probe] TX return to IDLE state. 
+- [Probe] RX return to IDLE state. 
+
+### CLK
+- [Probe] Verify that the clock divider generates the desired clock frequency for different clock divider settings for both TX and RX.
+- [Not planned for this scope] Clk glitch
+- [Not planned for this scope] CDC
+
 
 | REVISION | DATE       | AUTHOR          | DESCRIPTION                                            |
 |----------|------------|-----------------|--------------------------------------------------------|
