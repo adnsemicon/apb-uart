@@ -1,4 +1,4 @@
-`include "../submodule/adn_apb/include/apb/typedef.svh"
+`include "apb/typedef.svh"
 
 interface apb_if #(
     parameter int ADDR_WIDTH = 32,
@@ -10,7 +10,7 @@ interface apb_if #(
 
   `APB_T(apb, ADDR_WIDTH, DATA_WIDTH)
 
-  apb_req_t req;
+  apb_req_t  req;
   apb_resp_t rsp;
 
   modport master(input pclk, input presetn, output req, input rsp);
@@ -29,17 +29,9 @@ interface apb_if #(
 
   task automatic apply_reset(bit mode = 1);
     if (mode) begin
-      req.psel <= '0;
-      req.penable <= '0;
-      req.paddr <= '0;
-      req.pprot <= '0;
-      req.pwrite <= '0;
-      req.pwdata <= '0;
-      req.pstrb <= '0;
+      req <= '0;
     end else begin
-      rsp.pready  <= '0;
-      rsp.prdata  <= '0;
-      rsp.pslverr <= '0;
+      rsp <= '0;
     end
   endtask
 
@@ -55,7 +47,7 @@ interface apb_if #(
     req.pprot   <= '0;
     req.pwrite  <= write;
     req.pwdata  <= wdata;
-    req.pstrb   <= write ? '1 : '0;
+    req.pstrb   <= '1;
 
     @(posedge pclk);
     req.penable <= 1'b1;
@@ -64,16 +56,12 @@ interface apb_if #(
 
     rdata  = rsp.prdata;
     slverr = rsp.pslverr;
-
     req.psel    <= 1'b0;
-    req.penable <= 1'b0;
 
   endtask
 
   task automatic get_transaction(output logic [ADDR_WIDTH-1:0] addr, output logic write,
                                  output logic [DATA_WIDTH-1:0] data, output logic slverr);
-
-    do @(posedge pclk); while (!(presetn === 1'b1 && req.psel === 1'b1 && req.penable === 1'b0));
 
     do
       @(posedge pclk);
