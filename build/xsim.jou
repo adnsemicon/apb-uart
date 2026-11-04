@@ -1,0 +1,25 @@
+#-----------------------------------------------------------
+# xsim v2024.2 (64-bit)
+# SW Build 5239630 on Fri Nov 08 22:35:27 MST 2024
+# IP Build 5239520 on Sun Nov 10 16:12:51 MST 2024
+# SharedData Build 5239561 on Fri Nov 08 14:39:27 MST 2024
+# Start of session at: Wed Nov  4 17:23:13 2026
+# Process ID         : 4528
+# Current directory  : C:/Users/foeza/Desktop/apb-uart/build
+# Command line       : xsim.exe -log C:/Users/foeza/Desktop/apb-uart/log/xsim_apb_uart_top_tb_default_20261104_172240.log -mode tcl -source {xsim.dir/snap_apb_uart_top_tb/xsim_script.tcl}
+# Log file           : C:/Users/foeza/Desktop/apb-uart/log/xsim_apb_uart_top_tb_default_20261104_172240.log
+# Journal file       : C:/Users/foeza/Desktop/apb-uart/build\xsim.jou
+# Running On         : DESKTOP-J2SA5JN
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : 11th Gen Intel(R) Core(TM) i5-1145G7 @ 2.60GHz
+# CPU Frequency      : 2611 MHz
+# CPU Physical cores : 4
+# CPU Logical cores  : 8
+# Host memory        : 34112 MB
+# Swap memory        : 2147 MB
+# Total Virtual      : 36260 MB
+# Available Virtual  : 19898 MB
+#-----------------------------------------------------------
+source xsim.dir/snap_apb_uart_top_tb/xsim_script.tcl
+run -all

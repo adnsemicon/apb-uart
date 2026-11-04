@@ -16,6 +16,7 @@ BUILD_DIR := $(REPO_ROOT)/build
 LOG_DIR := $(REPO_ROOT)/log
 REPORT_DIR := $(REPO_ROOT)/report
 
+TOP   := apb_uart_top_tb
 TN    := default
 TC    := 0
 VCD   := 0

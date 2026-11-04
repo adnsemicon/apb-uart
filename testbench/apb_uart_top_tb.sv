@@ -101,8 +101,8 @@ module apb_uart_top_tb;
       .PRESETn(ctrl_intf.PRESETn),
       .apb_req_i (apb_intf.req),
       .apb_resp_o(apb_intf.rsp),
-      .UART_TX(tx_intf.rx),
-      .UART_RX(rx_intf.tx),
+      .UART_TX(tx_intf.line),
+      .UART_RX(rx_intf.line),
       .UART_IRQ(uart_intr)
   );
 
