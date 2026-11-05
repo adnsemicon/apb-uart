@@ -52,7 +52,6 @@
 ## INTERFACE
 [`apb_if`](document/interface/apb_if.md)
 [`ctrl_if`](document/interface/ctrl_if.md)
-[`document/interface/dummy_interface.md)
 [`uart_if`](document/interface/uart_if.md)
 
 [`apb_memif`](https://github.com/ADN-VLSI/adn_apb/blob/main/document/interface/apb_memif.md)
